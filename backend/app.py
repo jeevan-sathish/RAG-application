@@ -1,6 +1,11 @@
 from flask import Flask,request,jsonify
 from flask_cors import CORS
 from db import get_connection
+import fitz
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_ollama import OllamaEmbeddings
+from langchain_community.vectorstores import Chroma
+
 
 
 app=Flask(__name__)
@@ -79,6 +84,57 @@ def get_signUP():
             
         except Exception as e:
             print("error:", e)
+
+@app.route('/result', methods=["POST"])
+def fetch_result():
+    response = request.get_json()
+    prompt = response.get("prompt")
+
+    
+    if not prompt:
+        return jsonify({"message": "Prompt is required"}), 400
+
+    file_path = 'ragInfo.pdf'
+    text = ""
+
+    doc = fitz.open(file_path)
+    for page in doc:
+        text += page.get_text()
+
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=300,
+        chunk_overlap=50
+    )
+
+    chunks = splitter.split_text(text)
+    chunk_size = len(chunks)
+
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
+    vectors = embeddings.embed_documents(chunks)
+    vector_length =len(vectors)
+    each_vector_length=len(vectors[0])
+
+    
+    db = Chroma.from_texts(
+        texts=chunks,  
+        embedding=embeddings,
+        persist_directory="./db"
+    )
+
+    db.persist()
+
+   
+    results = db.similarity_search(prompt, k=3)
+
+    output = [r.page_content for r in results]
+
+    return jsonify({
+        "result": output,
+        "chunkSize":chunk_size,
+        "vecLen":vector_length,
+        "eachVecLen":each_vector_length
+    })
+    
             
         
     
