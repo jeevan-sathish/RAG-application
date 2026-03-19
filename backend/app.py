@@ -23,7 +23,7 @@ def signin_auth():
         }), 404
     else:
         try:
-            query ="select email ,password from userAuth where email=%s and password=%s"
+            query ="select email ,password from users where email=%s and password=%s"
             values=(email,password)
             cursor.execute(query,values)
             rows =cursor.fetchone()
@@ -34,13 +34,27 @@ def signin_auth():
             else:
                 return jsonify(
                     {
-                        "message":"user doent exist create an account"
+                        "message":"login failed"
                     }
                 )
         except Exception as e:
             print("error",e)
         
-        
+@app.route('/signup',methods=["POST"])    
+def get_signUP():
+    user_data =request.get_json()
+    name=user_data.get("name")
+    gender =user_data.get("gender")
+    status =user_data.get("status")
+    email=user_data.get("email")
+    password =user_data.get("password")
+    
+    if not all([name, gender, status, email, password]):
+        return jsonify({"message": "Field error"}), 400
+    else:
+        return jsonify({
+            "message":"field good"
+        })
         
     
             

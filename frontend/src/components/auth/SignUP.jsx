@@ -1,8 +1,110 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { FaGetPocket } from "react-icons/fa";
+import { FaArrowUpRightFromSquare } from "react-icons/fa6";
 
 const SignUP = () => {
+    const [data,setData]=useState({
+        name:"",
+        gender:"",
+        status:"",
+        email:"",
+        password:""
+    })
+
+    const [res,setRes]=useState("")
+    // const [isSignUP,setIsSignUp]=useState(false)
+
+    function handleInputs(e){
+        const {name,value}=e.target
+        setData((prev)=>({
+            ...prev,
+            [name]:value
+        }))
+
+    }
+
+    async function handleSubmit(){
+        if (Object.values(data).some(field => field === "")) {
+            alert("Fields cannot be empty");
+            return;
+        } else {
+           try{
+            const response =await fetch("http://127.0.0.1:5000/signup",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify(data)
+            })
+
+            const result =await response.json()
+            setRes(result.message)
+             if (response.ok) {
+            setData({
+                name: "",
+                email: "",
+                password: "",
+                gender: "",
+                status: ""
+            });
+        } else {
+            
+            alert(result.message || "Signup failed");
+        }
+
+           }
+           catch(e){
+            console.log("error:",e)
+           }
+           
+        }
+      
+    }
   return (
-    <div>SignUP</div>
+    <div className='text-white shadow-2xl shadow-amber-200 w-[400px] h-[500px] p-4 bg-black rounded-2xl flex flex-col justify-evenly items-center'>
+        <div className='w-full flex flex-row justify-center items-center font-extrabold gap-2'>
+            <h1 className='text-[35px] text-green-400'>Register here </h1>
+             <FaGetPocket className='text-[35px] text-green-400'/>
+        </div>
+        <input 
+        placeholder='Enter your name'
+          name='name' value={data.name}
+          className='border bg-white text-black border-white w-[80%] h-[40px] rounded-2xl p-[20px]'
+          type="text" onChange={handleInputs} />
+        <select 
+       
+         className='border bg-white text-black border-white w-[80%] h-[40px] rounded-2xl p-[20px]'
+        name="gender" value={data.gender} onChange={handleInputs}>
+            <option value="select">select</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="not to say">Not to Say</option>
+        </select>
+        <select 
+         className='border bg-white text-black border-white w-[80%] h-[40px] rounded-2xl p-[20px]'
+        name="status" value={data.status} onChange={handleInputs}>
+            <option value="select">select</option>
+            <option value="student">Student</option>
+            <option value="working">working</option>
+        </select>
+
+        <input 
+         placeholder="Enter the email"
+         className='border bg-white text-black border-white w-[80%] h-[40px] rounded-2xl p-[20px]'
+        type="email" name='email' value={data.email} onChange={handleInputs} placeholder='Enter your email' />
+        <input
+         placeholder="Enter the password"
+         className='border bg-white text-black border-white w-[80%] h-[40px] rounded-2xl p-[20px]'
+         type="password" name='password' value={data.password} onChange={handleInputs} placeholder='enter the password'/>
+        <div className='w-[80%] flex flex-row gap-2 justify-center items-center'>
+        <button 
+        className='w-full h-[40px] bg-green-400 text-black font-medium rounded-2xl text-[20px]'
+        onClick={handleSubmit}>submit  </button>
+
+        <FaArrowUpRightFromSquare />
+        </div>
+        <h1 className='text-white'>{res}</h1>
+    </div>
   )
 }
 

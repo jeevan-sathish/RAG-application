@@ -2,7 +2,7 @@ import React from 'react'
 
 const Action = () => {
   return (
-    <div>Action</div>
+    <div className=''>Action</div>
   )
 }
 

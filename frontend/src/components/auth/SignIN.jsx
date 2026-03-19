@@ -1,16 +1,18 @@
 import React, { useState } from 'react'
 import { FaRocket } from "react-icons/fa";
+import { useNavigate } from 'react-router-dom';
 
 
 
 const SignIN = () => {
+    const navigate =useNavigate()
 
     const [data,setData]=useState({
         email:"",
         password:""
     })
 
-    const [setRes]=useState("")
+    const [res,setRes]=useState("")
     const [islogged,setIsLogged]= useState(false)
 
     function handleData(e){
@@ -37,12 +39,16 @@ const SignIN = () => {
             if( result.message =="login succesfull"){
                 setIsLogged(true)
             }
+            else if(result.message =="login failed"){
+                navigate('/SignUP')
+            }
             else{
                 setIsLogged(false)
             }
             setTimeout(()=>{
                 if(result.message=="login succesfull"){
                         setIsLogged(false)
+                        navigate("/Action")
                 }
                
             },3000)
@@ -78,7 +84,7 @@ const SignIN = () => {
      value={data.email}
      placeholder='Enter your email' 
      onChange={handleData} required
-     className='p-3 w-[80%] h-[45px] border border-black rounded-2xl '   
+     className='p-3 w-[80%] h-[45px] bg-gray-600 border border-black rounded-2xl '   
      />
 
      <input 
@@ -87,7 +93,7 @@ const SignIN = () => {
      value={data.password}
      placeholder='Enter your password' 
      onChange={handleData} required
-     className='p-3 w-[80%] h-[45px] border border-black rounded-2xl '   
+     className='p-3 w-[80%] h-[45px] bg-gray-400 border border-black rounded-2xl '   
      />
 
      <button 
@@ -98,11 +104,13 @@ const SignIN = () => {
 
        </button>
 
+       <h1 className='text-white'>{res}</h1>
+
        
     
     </div>
         ):(
-            <div>
+            <div className='text-white'>
                  success✅
             </div>
         )
