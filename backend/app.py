@@ -2,17 +2,21 @@ from flask import Flask,request,jsonify
 from flask_cors import CORS
 from db import get_connection
 
-conn =get_connection()
-cursor =conn.cursor()
-
-if conn.is_connected():
-    print("connected")
 
 app=Flask(__name__)
 CORS(app)
 
+conn =get_connection()
+
+
+if conn.is_connected():
+    print("connected")
+
+
+
 @app.route('/signin', methods=["POST"])
 def signin_auth():
+    cursor =conn.cursor()
     user_data =request.get_json()
     email=user_data.get("email")
     password =user_data.get("password")
@@ -42,6 +46,7 @@ def signin_auth():
         
 @app.route('/signup',methods=["POST"])    
 def get_signUP():
+    cursor =conn.cursor()
     user_data =request.get_json()
     name=user_data.get("name")
     gender =user_data.get("gender")
@@ -52,9 +57,29 @@ def get_signUP():
     if not all([name, gender, status, email, password]):
         return jsonify({"message": "Field error"}), 400
     else:
-        return jsonify({
-            "message":"field good"
-        })
+        try:
+            query ="select name, email from users where email=%s"
+            val=(email,)
+            cursor.execute(query,val)
+            rows =cursor.fetchone()
+            if rows:
+                return jsonify({
+                    "message":"user exist"
+                })
+            else:
+                query="INSERT INTO users(name,gender,status,email,password) VALUES(%s,%s,%s,%s,%s)"
+                value =(name,gender,status,email,password)
+                cursor.execute(query,value)
+                conn.commit()
+                cursor.close()
+                return jsonify({
+                    "message":"signup success"
+                })
+                
+            
+        except Exception as e:
+            print("error:", e)
+            
         
     
             

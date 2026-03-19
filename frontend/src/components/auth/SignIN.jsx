@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { FaRocket } from "react-icons/fa";
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 
 
@@ -101,8 +101,9 @@ const SignIN = () => {
       onClick={handleSubmit}
        >
        submit
-
        </button>
+
+       <p className='text-blue-300 text-[15px]'>create or Register now <Link to='/SignUP' className='text-red-300 underline hover:text-green-400'>Register!</Link></p>
 
        <h1 className='text-white'>{res}</h1>
 
