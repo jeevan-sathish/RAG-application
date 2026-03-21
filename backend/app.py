@@ -6,7 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 
-
+import ollama
 
 app=Flask(__name__)
 CORS(app)
@@ -140,30 +140,80 @@ def fetch_result():
 @app.route("/files", methods=["POST"])
 def file_handle():
     file = request.files.get("file")
+    data = request.get_json(silent=True)
+    prompt = None
+
+    if data:
+        prompt = data.get("prompt")
+
     text = ""
 
-    if not file:
-        return jsonify({
-            "message": "No file uploaded"
-        }), 400
-
     try:
-        docs = fitz.open(stream=file.read(), filetype="pdf")
+        embeddings = OllamaEmbeddings(model="nomic-embed-text")
 
-        for page in docs:
-            text += page.get_text()
+        if file:
+            docs = fitz.open(stream=file.read(), filetype="pdf")
 
-        return jsonify({
-            "message": "File processed successfully",
-            "text": text
-        }), 200
+            for page in docs:
+                text += page.get_text()
+
+            splitter = RecursiveCharacterTextSplitter(
+                chunk_size=400,
+                chunk_overlap=50
+            )
+
+            chunks = splitter.split_text(text)
+            text_chunk = []
+
+            for i, chunk in enumerate(chunks, start=1):
+                text_chunk.append({
+                    "chunk_no": i,
+                    "chunk_text": chunk
+                })
+
+            db = Chroma.from_texts(
+                texts=chunks,
+                embedding=embeddings,
+                persist_directory="./db"
+            )
+            db.persist()
+
+            return jsonify({
+                "message": "File processed successfully",
+                "text": text,
+                "chunks": text_chunk
+            }), 200
+
+        elif prompt:
+            db = Chroma(
+                persist_directory="./db",
+                embedding_function=embeddings
+            )
+
+            results = db.similarity_search(prompt, k=3)
+            context = ""
+
+            for doc in results:
+                context += doc.page_content + "\n\n"
+
+          
+
+            return jsonify({
+                "message": "Answer generated successfully",
+                "answer": context,
+                
+            }), 200
+
+        else:
+            return jsonify({
+                "message": "No file or prompt provided"
+            }), 400
 
     except Exception as e:
         return jsonify({
             "message": "Error processing file",
             "error": str(e)
         }), 500
-       
     
             
 

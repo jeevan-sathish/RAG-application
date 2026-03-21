@@ -1,4 +1,11 @@
 @import "tailwindcss";
+#btn:hover {
+  color: chocolate;
+}
+#btn {
+  color: rgb(60, 106, 245);
+}
+
 /* .counter {
   font-size: 16px;
   padding: 5px 10px;
