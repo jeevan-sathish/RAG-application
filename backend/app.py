@@ -134,9 +134,36 @@ def fetch_result():
         "vecLen":vector_length,
         "eachVecLen":each_vector_length
     })
-    
-            
-        
+
+
+
+@app.route("/files", methods=["POST"])
+def file_handle():
+    file = request.files.get("file")
+    text = ""
+
+    if not file:
+        return jsonify({
+            "message": "No file uploaded"
+        }), 400
+
+    try:
+        docs = fitz.open(stream=file.read(), filetype="pdf")
+
+        for page in docs:
+            text += page.get_text()
+
+        return jsonify({
+            "message": "File processed successfully",
+            "text": text
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "message": "Error processing file",
+            "error": str(e)
+        }), 500
+       
     
             
 
