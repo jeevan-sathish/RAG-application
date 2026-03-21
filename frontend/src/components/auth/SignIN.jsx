@@ -52,7 +52,7 @@ const SignIN = () => {
     }
   }
   return (
-    <>
+    <div className="w-full h-screen flex flex-col justify-center items-center">
       {!islogged ? (
         <div
           className="w-[400px] h-[300px] rounded-2xl p-3 flex flex-col
@@ -109,7 +109,7 @@ const SignIN = () => {
           <FaCheckCircle className="w-[100px] h-[100px]  bg-green text-white animate-bounce" />
         </div>
       )}
-    </>
+    </div>
   );
 };
 

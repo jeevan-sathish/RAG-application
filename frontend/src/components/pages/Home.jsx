@@ -73,7 +73,7 @@ Overall, RAG makes AI smarter by using external knowledge......
     navigate("/SignIN");
   }
   return (
-    <div className="w-full h-[90vh] bg-gray-900 flex flex-row gap-2  ">
+    <div className="w-full h-auto bg-gray-900 flex flex-row gap-2  ">
       <div className="contentPage w-[40%] h-[85vh] shadow-2xl shadow-blue-900 rounded-2xl m-[20px] border border-gray-800 bg-black p-[30px]">
         <div className="w-full h-[70px] flex flex-row justify-center items-center">
           <p className="text-[22px] text-amber-300">
@@ -94,7 +94,7 @@ Overall, RAG makes AI smarter by using external knowledge......
         <p className="text-[50px] text-center text-white leading-13.5">
           Wellcome,Try The new <span className="text-blue-500">RAG</span> Tech
         </p>
-        <div className="w-[80%] min-h-[200px] p-[20px] rounded-2xl bg-gray-800 border border-black flex flex-col">
+        <div className="w-[80%] h-auto p-[20px] rounded-2xl bg-gray-800 border border-black flex flex-col">
           <p className="text-amber-600">let's try processing.....</p>
           <div className="w-full flex flex-row gap-4 mt-[10px]">
             <input
