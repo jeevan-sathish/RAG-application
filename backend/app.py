@@ -150,6 +150,9 @@ def file_handle():
     text = ""
 
     try:
+        print("file:", file)
+        print("prompt:", prompt)
+
         embeddings = OllamaEmbeddings(model="nomic-embed-text")
 
         if file:
@@ -164,8 +167,8 @@ def file_handle():
             )
 
             chunks = splitter.split_text(text)
-            text_chunk = []
 
+            text_chunk = []
             for i, chunk in enumerate(chunks, start=1):
                 text_chunk.append({
                     "chunk_no": i,
@@ -180,7 +183,6 @@ def file_handle():
                 embedding=embeddings,
                 persist_directory="./db"
             )
-            db.persist()
 
             return jsonify({
                 "message": "File processed successfully",
@@ -188,7 +190,7 @@ def file_handle():
                 "chunks": text_chunk
             }), 200
 
-        elif prompt:
+        elif prompt and prompt.strip():
             if not os.path.exists("./db"):
                 return jsonify({
                     "message": "No database found. Please upload a file first."
@@ -200,10 +202,9 @@ def file_handle():
             )
 
             results = db.similarity_search(prompt, k=3)
-            matched_texts = []
-            for doc in results:
-              matched_texts.append(doc.page_content)
-            
+
+            matched_texts = [doc.page_content for doc in results]
+
             return jsonify({
                 "message": "Answer generated successfully",
                 "answer": matched_texts
@@ -215,6 +216,7 @@ def file_handle():
             }), 400
 
     except Exception as e:
+        print("BACKEND ERROR:", str(e))
         return jsonify({
             "message": "Error processing request",
             "error": str(e)

@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { FaMagnifyingGlassChart } from "react-icons/fa6";
 import { FiUpload } from "react-icons/fi";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { Rings } from "react-loader-spinner";
 import { FaFileAlt } from "react-icons/fa";
 import "../../App.css";
+import { FaAngleDoubleRight } from "react-icons/fa";
 
 const heroText =
   "Upload your resume for AI-powered analysis, or ask any question using our RAG agent.";
@@ -15,7 +17,8 @@ const Action = () => {
   const [chunk, setChunk] = useState([]);
   const [fileName, setFilename] = useState("");
   const [prompt, setprompt] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [answer, setAnswer] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   function handleFile(e) {
     const selectedFile = e.target.files[0];
@@ -54,6 +57,11 @@ const Action = () => {
 
   async function handlePromptSubmit() {
     try {
+      if (!prompt.trim()) return;
+
+      setLoading(true);
+      setAnswer([]);
+
       const response = await fetch("http://127.0.0.1:5000/files", {
         method: "POST",
         headers: {
@@ -63,9 +71,19 @@ const Action = () => {
       });
 
       const output = await response.json();
-      setAnswer(output.answer);
+
+      if (!response.ok) {
+        console.log("backend error:", output);
+        setAnswer([]);
+        return;
+      }
+
+      setAnswer(Array.isArray(output.answer) ? output.answer : []);
     } catch (err) {
       console.log("err:", err);
+      setAnswer([]);
+    } finally {
+      setLoading(false);
     }
   }
   return (
@@ -173,16 +191,47 @@ const Action = () => {
               ))}
             </div>
           ) : purpose == "chat" ? (
-            <div className="w-full p-2.5 h-[85%] overflow-y-scroll text-black bg-white flex flex-col gap-5 ">
-              <input
-                type="text"
-                placeholder="handlePrompt"
-                name="prompt"
-                value={prompt}
-                onChange={handlePrompt}
-              />
-              <button onClick={handlePromptSubmit}>submit</button>
-              <p>{answer}</p>
+            <div className="w-full p-2.5 h-[85%]  text-black bg-black flex flex-col gap-5 ">
+              <section className="w-full h-[80%] bg-gray-800 p-[30px] text-gray-500 overflow-y-scroll">
+                {loading ? (
+                  <div className="flex justify-center items-center h-full">
+                    <Rings
+                      visible={true}
+                      height="90"
+                      width="90"
+                      color="#4fa94d"
+                      ariaLabel="rings-loading"
+                    />
+                  </div>
+                ) : answer.length > 0 ? (
+                  answer.map((ele, index) => (
+                    <div key={index} className="mb-4">
+                      <p>{ele}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex justify-center items-center h-full text-gray-400">
+                    No answer yet
+                  </div>
+                )}
+              </section>
+              <div className="w-full p-[10px] bg-gray-900 flex flex-row gap-[10px]  items-center ">
+                <input
+                  className="border border-white w-[300px] h-[25px] p-2 text-amber-600"
+                  type="text"
+                  placeholder="query here..."
+                  name="prompt"
+                  value={prompt}
+                  onChange={handlePrompt}
+                />
+                <FaAngleDoubleRight />
+                <button
+                  className="text-green-500 font-extrabold"
+                  onClick={handlePromptSubmit}
+                >
+                  get()
+                </button>
+              </div>
             </div>
           ) : (
             <div className="w-full p-2.5 h-[85%] overflow-y-scroll text-black bg-white flex flex-col gap-5 ">
