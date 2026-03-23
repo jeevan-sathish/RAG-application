@@ -261,11 +261,8 @@ const Action = () => {
                     />
                   </div>
                 ) : Array.isArray(answer) && answer.length > 0 ? (
-                  answer.map((ele, index) => (
-                    <div
-                      key={index}
-                      className="mb-4 p-1 rounded-xl text-[13px]  bg-gray-800"
-                    >
+                  answer.map((ele) => (
+                    <div className="mb-4 p-1 rounded-xl text-[13px]  bg-gray-800">
                       <p>{ele}</p>
                     </div>
                   ))

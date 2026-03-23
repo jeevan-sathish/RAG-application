@@ -221,7 +221,7 @@ def file_handle():
                 embedding_function=embeddings
             )
 
-            results = db.similarity_search(prompt, k=3)
+            results = db.similarity_search(prompt, k=1)
             matched_texts = [doc.page_content for doc in results]
 
             return jsonify({
