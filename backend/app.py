@@ -153,6 +153,9 @@ def file_handle():
         print("file:", file)
         print("prompt:", prompt)
 
+        chunk_size = 400
+        chunk_overlap = 50
+
         embeddings = OllamaEmbeddings(model="nomic-embed-text")
 
         if file:
@@ -162,21 +165,24 @@ def file_handle():
                 text += page.get_text()
 
             splitter = RecursiveCharacterTextSplitter(
-                chunk_size=400,
-                chunk_overlap=50
+                chunk_size=chunk_size,
+                chunk_overlap=chunk_overlap
             )
 
             chunks = splitter.split_text(text)
 
             text_chunk = []
+            chunk_lengths = []
+
             for i, chunk in enumerate(chunks, start=1):
+                chunk_len = len(chunk)
+                chunk_lengths.append(chunk_len)
+
                 text_chunk.append({
                     "chunk_no": i,
-                    "chunk_text": chunk
+                    "chunk_text": chunk,
+                    "chunk_length": chunk_len
                 })
-
-            if os.path.exists("./db"):
-                shutil.rmtree("./db")
 
             db = Chroma.from_texts(
                 texts=chunks,
@@ -184,10 +190,24 @@ def file_handle():
                 persist_directory="./db"
             )
 
+            sample_vector_dimension = 0
+            if chunks:
+                sample_embedding = embeddings.embed_query(chunks[0])
+                sample_vector_dimension = len(sample_embedding)
+
             return jsonify({
                 "message": "File processed successfully",
                 "text": text,
-                "chunks": text_chunk
+                "chunks": text_chunk,
+
+                "total_text_length": len(text),
+                "total_chunks": len(chunks),
+                "chunk_size": chunk_size,
+                "chunk_overlap": chunk_overlap,
+                "chunk_lengths": chunk_lengths,
+
+                "vector_count": len(chunks),
+                "vector_dimension": sample_vector_dimension
             }), 200
 
         elif prompt and prompt.strip():
@@ -202,7 +222,6 @@ def file_handle():
             )
 
             results = db.similarity_search(prompt, k=3)
-
             matched_texts = [doc.page_content for doc in results]
 
             return jsonify({
