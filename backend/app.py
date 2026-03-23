@@ -5,8 +5,9 @@ import fitz
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
-
+import os
 import ollama
+import shutil
 
 app=Flask(__name__)
 CORS(app)
@@ -171,6 +172,9 @@ def file_handle():
                     "chunk_text": chunk
                 })
 
+            if os.path.exists("./db"):
+                shutil.rmtree("./db")
+
             db = Chroma.from_texts(
                 texts=chunks,
                 embedding=embeddings,
@@ -185,6 +189,11 @@ def file_handle():
             }), 200
 
         elif prompt:
+            if not os.path.exists("./db"):
+                return jsonify({
+                    "message": "No database found. Please upload a file first."
+                }), 400
+
             db = Chroma(
                 persist_directory="./db",
                 embedding_function=embeddings
@@ -196,12 +205,37 @@ def file_handle():
             for doc in results:
                 context += doc.page_content + "\n\n"
 
-          
+            if not context.strip():
+                return jsonify({
+                    "message": "No relevant content found in the PDF for this prompt."
+                }), 200
+
+            try:
+                response = ollama.chat(
+                    model="llama3",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"""
+                    Use this context:
+                    {context}
+
+                    Remove all extra signs, symbols, and unwanted characters. 
+                    Provide the information in a clean and readable way.
+                """
+                        }
+                    ]
+                )
+                answer = response["message"]["content"]
+            except Exception as e:
+                return jsonify({
+                    "message": "Error calling Ollama",
+                    "error": str(e)
+                }), 500
 
             return jsonify({
                 "message": "Answer generated successfully",
-                "answer": context,
-                
+                "answer": answer
             }), 200
 
         else:
@@ -211,10 +245,9 @@ def file_handle():
 
     except Exception as e:
         return jsonify({
-            "message": "Error processing file",
+            "message": "Error processing request",
             "error": str(e)
         }), 500
-    
             
 
 if __name__ == "__main__":
