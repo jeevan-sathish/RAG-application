@@ -182,7 +182,7 @@ const Action = () => {
                 onChange={handlePrompt}
               />
               <button onClick={handlePromptSubmit}>submit</button>
-              <p>{JSON.stringify(answer, null, 2)}</p>
+              <p>{answer}</p>
             </div>
           ) : (
             <div className="w-full p-2.5 h-[85%] overflow-y-scroll text-black bg-white flex flex-col gap-5 ">

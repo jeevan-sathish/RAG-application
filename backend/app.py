@@ -200,42 +200,13 @@ def file_handle():
             )
 
             results = db.similarity_search(prompt, k=3)
-            context = ""
-
+            matched_texts = []
             for doc in results:
-                context += doc.page_content + "\n\n"
-
-            if not context.strip():
-                return jsonify({
-                    "message": "No relevant content found in the PDF for this prompt."
-                }), 200
-
-            try:
-                response = ollama.chat(
-                    model="llama3",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": f"""
-                    Use this context:
-                    {context}
-
-                    Remove all extra signs, symbols, and unwanted characters. 
-                    Provide the information in a clean and readable way.
-                """
-                        }
-                    ]
-                )
-                answer = response["message"]["content"]
-            except Exception as e:
-                return jsonify({
-                    "message": "Error calling Ollama",
-                    "error": str(e)
-                }), 500
-
+              matched_texts.append(doc.page_content)
+            
             return jsonify({
                 "message": "Answer generated successfully",
-                "answer": answer
+                "answer": matched_texts
             }), 200
 
         else:
