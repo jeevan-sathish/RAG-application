@@ -87,4 +87,4 @@
 
 
 
-from pymupdf import fitz
+import fitz
